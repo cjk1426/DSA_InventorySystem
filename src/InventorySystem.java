@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 class InventorySystem {
     // HashMap to store inventory by engine number
@@ -24,6 +25,9 @@ class InventorySystem {
         return inventoryMap.get(engineNumber);
     }
 
+
+
+
     // Delete Stock by Engine Number
     public void deleteStock(String engineNumber) {
         Stock stock = inventoryMap.remove(engineNumber);
@@ -32,6 +36,19 @@ class InventorySystem {
         }
     }
 
+
+        // Search Stocks by Brand
+    public List<Stock> searchByBrand(String brand) {
+        List<Stock> result = new LinkedList<>();
+        for (Stock stock : inventoryList) {
+            if (stock.getBrand().equalsIgnoreCase(brand)) {
+                result.add(stock);
+            }
+        }
+        return result;
+    }
+
+    
     // Sort Inventory by Brand (using Merge Sort)
     public void sortInventory() {
         mergeSort(inventoryList, 0, inventoryList.size() - 1);
