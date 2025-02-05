@@ -1,45 +1,31 @@
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 class InventorySystem {
-    // HashMap to store inventory by engine number
-    private HashMap<String, Stock> inventoryMap;
-    // LinkedList to maintain ordered inventory (by brand, for example)
     private LinkedList<Stock> inventoryList;
 
     public InventorySystem() {
-        inventoryMap = new HashMap<>();
         inventoryList = new LinkedList<>();
     }
 
-    // Add Stock to HashMap and LinkedList
+    // Add Stock to the LinkedList
     public void addStock(Stock stock) {
-        inventoryMap.put(stock.getEngineNumber(), stock);
-        inventoryList.add(stock); // Add to LinkedList (order maintained)
-        sortInventory(); // Sort inventory if needed (e.g., by brand)
+        inventoryList.add(stock);
+        sortInventory(); // Sort inventory after adding
     }
 
     // Search Stock by Engine Number
     public Stock searchStock(String engineNumber) {
-        return inventoryMap.get(engineNumber);
-    }
-
-
-
-
-    // Delete Stock by Engine Number
-    public void deleteStock(String engineNumber) {
-        Stock stock = inventoryMap.remove(engineNumber);
-        if (stock != null) {
-            inventoryList.remove(stock);
+        for (Stock stock : inventoryList) {
+            if (stock.getEngineNumber().equals(engineNumber)) {
+                return stock;
+            }
         }
+        return null; // Return null if not found
     }
 
-
-        // Search Stocks by Brand
-    public List<Stock> searchByBrand(String brand) {
-        List<Stock> result = new LinkedList<>();
+    // Search Stocks by Brand
+    public LinkedList<Stock> searchByBrand(String brand) {
+        LinkedList<Stock> result = new LinkedList<>();
         for (Stock stock : inventoryList) {
             if (stock.getBrand().equalsIgnoreCase(brand)) {
                 result.add(stock);
@@ -48,63 +34,80 @@ class InventorySystem {
         return result;
     }
 
+    // Delete Stock by Engine Number
+    public void deleteStockByEngineNumber(String engineNumber) {
+        inventoryList.removeIf(stock -> stock.getEngineNumber().equals(engineNumber));
+    }
+
+    // Delete Stocks by Brand
+    public void deleteStockByBrand(String brand) {
+        inventoryList.removeIf(stock -> stock.getBrand().equalsIgnoreCase(brand));
+    }
+
+    // Delete Stocks by Status
+    public void deleteStockByStatus(String status) {
+        inventoryList.removeIf(stock -> stock.getStatus().equalsIgnoreCase(status));
+    }
+
+    // Update Stock by Engine Number
+    public void updateStock(String engineNumber, String newBrand, String newStatus) {
+        Stock stock = searchStock(engineNumber);
+        if (stock != null) {
+            stock.setBrand(newBrand);
+            stock.setStatus(newStatus);
+            sortInventory(); // Re-sort the inventory after update
+        } else {
+            System.out.println("Stock with Engine Number " + engineNumber + " not found.");
+        }
+    }
     
-    // Sort Inventory by Brand (using Merge Sort)
+    // Sort Inventory by Brand using Merge Sort
     public void sortInventory() {
-        mergeSort(inventoryList, 0, inventoryList.size() - 1);
-    }
-
-    private void mergeSort(LinkedList<Stock> list, int left, int right) {
-        if (left < right) {
-            int mid = (left + right) / 2;
-            mergeSort(list, left, mid);
-            mergeSort(list, mid + 1, right);
-            merge(list, left, mid, right);
+        if (!inventoryList.isEmpty()) {
+            inventoryList = mergeSort(inventoryList);
         }
     }
 
-    private void merge(LinkedList<Stock> list, int left, int mid, int right) {
-        int n1 = mid - left + 1;
-        int n2 = right - mid;
-        LinkedList<Stock> leftList = new LinkedList<>();
-        LinkedList<Stock> rightList = new LinkedList<>();
-
-        for (int i = 0; i < n1; ++i) {
-            leftList.add(list.get(left + i));
-        }
-        for (int i = 0; i < n2; ++i) {
-            rightList.add(list.get(mid + 1 + i));
+    private LinkedList<Stock> mergeSort(LinkedList<Stock> list) {
+        if (list.size() <= 1) {
+            return list;
         }
 
-        int i = 0, j = 0;
-        int k = left;
-        while (i < n1 && j < n2) {
-            if (leftList.get(i).getBrand().compareTo(rightList.get(j).getBrand()) <= 0) {
-                list.set(k, leftList.get(i));
-                i++;
+        int mid = list.size() / 2;
+        LinkedList<Stock> left = new LinkedList<>(list.subList(0, mid));
+        LinkedList<Stock> right = new LinkedList<>(list.subList(mid, list.size()));
+
+        left = mergeSort(left);
+        right = mergeSort(right);
+
+        return merge(left, right);
+    }
+
+    private LinkedList<Stock> merge(LinkedList<Stock> left, LinkedList<Stock> right) {
+        LinkedList<Stock> merged = new LinkedList<>();
+
+        while (!left.isEmpty() && !right.isEmpty()) {
+            if (left.getFirst().getBrand().compareTo(right.getFirst().getBrand()) <= 0) {
+                merged.add(left.removeFirst());
             } else {
-                list.set(k, rightList.get(j));
-                j++;
+                merged.add(right.removeFirst());
             }
-            k++;
         }
 
-        while (i < n1) {
-            list.set(k, leftList.get(i));
-            i++;
-            k++;
-        }
-        while (j < n2) {
-            list.set(k, rightList.get(j));
-            j++;
-            k++;
-        }
+        merged.addAll(left);
+        merged.addAll(right);
+
+        return merged;
     }
 
     // Display Inventory
     public void displayInventory() {
-        for (Stock stock : inventoryList) {
-            System.out.println(stock);
+        if (inventoryList.isEmpty()) {
+            System.out.println("Inventory is empty.");
+        } else {
+            for (Stock stock : inventoryList) {
+                System.out.println(stock);
+            }
         }
     }
 }
